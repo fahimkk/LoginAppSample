@@ -1,114 +1,103 @@
-/**
- * Sample React Native App
- * https://github.com/facebook/react-native
- *
- * @format
- * @flow strict-local
- */
-
-import React from 'react';
+import 'react-native-gesture-handler';
+import * as React from 'react';
+import { NavigationContainer } from '@react-navigation/native';
+import { createStackNavigator, HeaderTitle } from '@react-navigation/stack';
 import {
   SafeAreaView,
   StyleSheet,
-  ScrollView,
   View,
   Text,
-  StatusBar,
+  Button
 } from 'react-native';
+// import LoginForm from './Components/LoginForm';
+import SignUp from './Components/SignUp';
+import LoginForm from './Components/LoginForm';
+import Home from './Components/Home';
+import {AuthContext} from './Components/Context';
 
-import {
-  Header,
-  LearnMoreLinks,
-  Colors,
-  DebugInstructions,
-  ReloadInstructions,
-} from 'react-native/Libraries/NewAppScreen';
+const AuthStack = createStackNavigator();
+const AccountStack = createStackNavigator();
 
-const App: () => React$Node = () => {
-  return (
-    <>
-      <StatusBar barStyle="dark-content" />
-      <SafeAreaView>
-        <ScrollView
-          contentInsetAdjustmentBehavior="automatic"
-          style={styles.scrollView}>
-          <Header />
-          {global.HermesInternal == null ? null : (
-            <View style={styles.engine}>
-              <Text style={styles.footer}>Engine: Hermes</Text>
-            </View>
-          )}
-          <View style={styles.body}>
-            <View style={styles.sectionContainer}>
-              <Text style={styles.sectionTitle}>Step One</Text>
-              <Text style={styles.sectionDescription}>
-                Edit <Text style={styles.highlight}>App.js</Text> to change this
-                screen and then come back to see your edits.
-              </Text>
-            </View>
-            <View style={styles.sectionContainer}>
-              <Text style={styles.sectionTitle}>See Your Changes</Text>
-              <Text style={styles.sectionDescription}>
-                <ReloadInstructions />
-              </Text>
-            </View>
-            <View style={styles.sectionContainer}>
-              <Text style={styles.sectionTitle}>Debug</Text>
-              <Text style={styles.sectionDescription}>
-                <DebugInstructions />
-              </Text>
-            </View>
-            <View style={styles.sectionContainer}>
-              <Text style={styles.sectionTitle}>Learn More</Text>
-              <Text style={styles.sectionDescription}>
-                Read the docs to discover what to do next:
-              </Text>
-            </View>
-            <LearnMoreLinks />
-          </View>
-        </ScrollView>
-      </SafeAreaView>
-    </>
+
+const App = () =>{
+  const [userToken, setUserToken] = React.useState()
+  const authContext = React.useMemo(()=>{
+    return {
+      signIn: () => {
+        setUserToken('asdf');
+      },
+      signUp: () => {
+        setUserToken('asdf');
+      },
+      signOut: () => {
+        setUserToken();
+      },
+    };
+  },[]);
+  return(
+//      <View style={styles.container}
+ //       <SignUp/>
+  //    </View>
+
+  <AuthContext.Provider  value={authContext}>
+    <NavigationContainer>
+      {userToken ? (
+          // if user token is true show home page
+      <AccountStack.Navigator>
+        <AccountStack.Screen
+          name="Home"
+          component={Home}
+          options={{
+            title:'Home',
+            headerRight: ()=> (
+              <Button
+                onPress={()=>alert('This is a button!')}
+                title = "info"
+              />
+            ),
+            headerStyle:{
+              backgroundColor:"#018786",
+            },
+          }}
+        />
+      </AccountStack.Navigator>
+      ) : (       
+      <AuthStack.Navigator initialRouteName="SignIn"
+          screenOptions={{
+            headerStyle: {
+              backgroundColor: "#005e5d",
+            },
+            headerTitleStyle: {
+              color: "#e0f2f1",
+            },
+            headerTintColor: "#fff"
+          }}
+        >
+        <AuthStack.Screen
+          name="SignIn"
+          component={LoginForm}
+          options={{title: 'Sign In'}}
+        />
+        <AuthStack.Screen
+          name="SignUp"
+          component={SignUp}
+          options={{title: 'Sign Up'}}
+        />
+      </AuthStack.Navigator>
+      )}
+    </NavigationContainer>
+  </AuthContext.Provider>
   );
-};
+}
 
 const styles = StyleSheet.create({
-  scrollView: {
-    backgroundColor: Colors.lighter,
+  container: {
+    backgroundColor: "#018786",
+    flexDirection: 'column',
+    flex:1,
+    alignItems:'center',
+    justifyContent: 'center',
   },
-  engine: {
-    position: 'absolute',
-    right: 0,
-  },
-  body: {
-    backgroundColor: Colors.white,
-  },
-  sectionContainer: {
-    marginTop: 32,
-    paddingHorizontal: 24,
-  },
-  sectionTitle: {
-    fontSize: 24,
-    fontWeight: '600',
-    color: Colors.black,
-  },
-  sectionDescription: {
-    marginTop: 8,
-    fontSize: 18,
-    fontWeight: '400',
-    color: Colors.dark,
-  },
-  highlight: {
-    fontWeight: '700',
-  },
-  footer: {
-    color: Colors.dark,
-    fontSize: 12,
-    fontWeight: '600',
-    padding: 4,
-    paddingRight: 12,
-    textAlign: 'right',
-  },
-});
+}); 
 
 export default App;
