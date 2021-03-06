@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import {NameInput, PasswordInput} from './Components'; 
 import {
   SafeAreaView,
   StyleSheet,
@@ -7,22 +8,51 @@ import {
   TextInput,
   Dimensions,
   TouchableOpacity,
+  Button,
+  Alert,
 } from 'react-native';
+// import Card from 'react-native-material-design';
+import {AuthContext, UserContext} from './Context';
 
 const windowWidth = Dimensions.get('window').width;
 const windowHeight = Dimensions.get('window').height;
 
-const LoginForm = () => {
-    const [username, setUsername] = useState('');
+const ErrorText = (errMsg)=>{
+    if (errMsg.status == "incorrect"){
+        return(
+            <Text style={styles.errorText}> Incorrect Password !!</Text>
+        );
+    } else return (
+            <Text> </Text>
+    );
+}
+
+const SignUpText = (singUpMsg)=>{
+    if (singUpMsg.status == "nil"){
+        return(
+            <Text style={styles.singUpMsg}> Please Sign UP </Text>
+        );
+    } else return (
+            <Text> </Text>
+    );
+}
+
+const LoginForm = ({navigation}) => {
+    const [userData, setUserData] = useState('');
+
+    const [status, setStatus] = useState('');
+    // AuthContext from app will return any of signIn Up or Out function
+    const {signIn} = React.useContext(AuthContext)
+    const [email, setEmail] = useState('');
     const [password, setPassword] = useState('');
-    const onChangeUsername = (value)=>{
-       setUsername(value); 
+    const onChangeEmail = (value)=>{
+       setEmail(value); 
     }
     const onChangePassword = (value)=>{
        setPassword(value); 
     }
-    const sendData = (username, password) =>{
-        console.log(username,password);
+    const sendData = (email, password) =>{
+        console.log(email,password);
         fetch('http://10.0.2.2:5000/', {
             method: 'POST',
             headers: {
@@ -30,72 +60,97 @@ const LoginForm = () => {
                 'Content-Type': 'application/json'
             },
             body: JSON.stringify({
-                username: username,
+                email: email,
                 password: password,
             })
-        }).then(response => console.log(response));
+        }).then(response => response.json()
+        ).then(data => {
+            setStatus(data.status);
+            return status;
+        });
     }
 
     return(
-        <View style={styles.container}>
-           <Text style={styles.label}>User Name</Text>
-           <TextInput
-            style={styles.inputBox}
-            placeholder="email/username"
-            onChangeText={onChangeUsername} 
-           /> 
+        <View style={styles.mainContainer}>
+            <View style={styles.container}>
+                <NameInput label="Email" placeholder="Email" onChange={onChangeEmail}/>
+                <PasswordInput label="Password" placeholder="Password" onChange={onChangePassword}/>
 
-           <Text style={styles.label}>Password</Text>
-           <TextInput 
-            style={styles.inputBox}
-            placeholder="Password" 
-            onChangeText= {onChangePassword}
-            secureTextEntry={true}
-            /> 
+                <ErrorText status={status}/>
+            <TouchableOpacity
+                style={styles.btnIn}
+                onPress={()=>{
+                    sendData(email,password);
+                    console.log(status);
+                    if (status == "nil"){
+                        navigation.navigate('SignUp')
+                    }else if (status == "incorrect"){
+                    navigation.navigate("Account",{screen:"Home", params:{email:email, password:password}})
+                        signIn();
+                    }
+                }}
+                >
+                    <Text style={styles.btnTextIn}>Sign In</Text>
+                </TouchableOpacity>
 
-           <TouchableOpacity
-            style={styles.btn}
-            onPress={()=>sendData(username,password)}
-            >
-                <Text style={styles.btnText}>Sign In</Text>
-            </TouchableOpacity>
+            <SignUpText status={status}/>
+            <TouchableOpacity
+                style={styles.btnUp}
+                onPress={()=>navigation.navigate('SignUp')}
+                >
+                    <Text style={styles.btnTextUp}>Sign Up</Text>
+                </TouchableOpacity>
+            </View>
         </View>
     );
 }
 
 const styles = StyleSheet.create({
+  mainContainer: {
+    backgroundColor: "#018786",
+    flexDirection: 'column',
+    flex:1,
+    alignItems:'center',
+    justifyContent: 'center',
+  },
     container:{
         backgroundColor: 'white',
         borderRadius: 25,
         width: windowWidth,
         padding:10,
     },
-    inputBox: {
-        height: 40,
-        marginLeft: 10,
-        marginRight: 10,
-        marginBottom: 15,
-
-        fontSize:16,
-        borderWidth:1,
-        borderRadius: 10,
-        padding:10,
-
-    },
-    label: {
-        margin:10,
+    errorText: {
+        color: "red",
         fontSize: 20,
-        color: 'black',
+        textAlign: "center",
     },
-    btn: {
-        margin:15,
+    singUpMsg:{
+        color:"grey",
+        fontSize:20,
+        textAlign: "center",
+    },
+    btnIn: {
+        margin:10,
         backgroundColor:"#018786",
         padding:8,
         borderRadius:10,
     },
-    btnText: {
+    btnTextIn: {
         fontSize:25,
         color: "#f8f8f8",
+        textAlign: "center",
+    },
+    btnUp: {
+        margin:10,
+        backgroundColor:"#f8f8f8",
+        padding:8,
+        borderRadius:10,
+        borderColor: "#018786",
+        borderWidth:1,
+    },
+    btnTextUp: {
+        fontSize:25,
+        color: "#018786",
         textAlign: "center",
     }
 });
